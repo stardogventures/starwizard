@@ -25,17 +25,3 @@ public @interface Lowercase {
 
     Class<? extends Payload>[] payload() default {};
 }
-
-class LowercaseValidator implements ConstraintValidator<Lowercase, String> {
-    @Override
-    public void initialize(Lowercase lowercase) {
-        // no initialization needed
-    }
-
-    public boolean isValid(String object, ConstraintValidatorContext constraintContext) {
-        if (object == null) {
-            return true;
-        }
-        return object.equals(object.toLowerCase());
-    }
-}
