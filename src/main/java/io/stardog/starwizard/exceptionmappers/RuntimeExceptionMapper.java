@@ -13,9 +13,10 @@ public class RuntimeExceptionMapper implements ExceptionMapper<RuntimeException>
     @Override
     public Response toResponse(RuntimeException e) {
         LOGGER.warn("Encountered runtime exception", e);
+        String message = e.getMessage() == null ? e.getClass().getSimpleName() : e.getMessage();
         return Response.status(500)
                 .type(MediaType.APPLICATION_JSON_TYPE)
-                .entity(ImmutableMap.of("error", e.getMessage()))
+                .entity(ImmutableMap.of("error", message))
                 .build();
     }
 }
