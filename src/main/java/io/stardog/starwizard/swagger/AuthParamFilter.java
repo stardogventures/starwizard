@@ -10,7 +10,14 @@ import io.swagger.models.properties.Property;
 import java.util.List;
 import java.util.Map;
 
-// from: https://www.reonomy.com/augmenting-dropwizard-with-swagger/
+/**
+ * This SwaggerSpecFilter checks for the presence of an access=internal @ApiParam
+ * annotation, and hides the parameter if it is present.
+ *
+ * This is primarily useful for hiding Dropwizard @Auth parameters.
+ *
+ * From: https://www.reonomy.com/augmenting-dropwizard-with-swagger/
+ */
 public class AuthParamFilter implements SwaggerSpecFilter {
     @Override
     public boolean isOperationAllowed(

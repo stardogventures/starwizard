@@ -7,7 +7,11 @@ import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
-// from https://nbsoftsolutions.com/blog/writing-a-dropwizard-json-app
+/**
+ * This UnauthorizedHandler returns a JSON-format error message for HTTP 401.
+ *
+ * From: https://nbsoftsolutions.com/blog/writing-a-dropwizard-json-app
+ */
 public class JsonUnauthorizedHandler implements UnauthorizedHandler {
     private static final String CHALLENGE_FORMAT = "%s realm=\"%s\"";
 

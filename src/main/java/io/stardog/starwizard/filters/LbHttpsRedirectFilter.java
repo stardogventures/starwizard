@@ -10,6 +10,11 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
+/**
+ * This filter forces a redirect to the HTTPS version of an HTTP-prefixed URL, if
+ * the X-Forwarded-Proto header is set to "http". This is the case for Amazon's
+ * Elastic Load Balancer service when forwarding HTTP requests.
+ */
 public class LbHttpsRedirectFilter implements Filter {
     @Override
     public void init(FilterConfig filterConfig) throws ServletException {
