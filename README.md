@@ -2,11 +2,16 @@
 
 Supporting classes for Dropwizard REST APIs
 
-Dropwizard is awesome, and I've found it incredibly useful for building simple, scalable REST APIs. But while Dropwizard is opinionated, there are some things that it (appropriately) doesn't include in the box, which I've found I tend to re-use over and over when building Dropwizard APIs. Here they are in one place.
+Dropwizard is awesome, and I've found it incredibly useful for building simple, scalable REST APIs. But while Dropwizard is opinionated, there are some things that it (appropriately) doesn't include in the box, which I've found I tend to re-use over and over when building Dropwizard APIs.
 
-Several of these classes are not of my invention:
-  * `WebExceptionMapper` and `JsonMappingExceptionMapper` are from this excellent blog post by [Nick Babcock](https://github.com/nickbabcock): https://nbsoftsolutions.com/blog/writing-a-dropwizard-json-app
-  * `AuthParamFilter` is from this equally excellent blog post by [Pablo Meier](https://github.com/pablo-meier): https://www.reonomy.com/augmenting-dropwizard-with-swagger/, based on this StackOverflow answer by [Özkan Can](http://stackoverflow.com/users/2494590/%C3%96zkan-can) http://stackoverflow.com/questions/21911166/how-can-i-set-swagger-to-ignore-suspended-asyncresponse-in-asynchronous-jax-rs
+* I usually run Dropwizard APIs on AWS behind an Elastic Load Balancer. ELB doesn't have an automatic way to force HTTPS, so I always need an easy way to redirect HTTP requests to HTTPS.
+* I use [Swagger](http://swagger.io/) to document my APIs, using the excellent [dropwizard-swagger](https://github.com/smoketurner/dropwizard-swagger) bundle for swagger-core. However, swagger-core doesn't provide an easy way to exclude Dropwizard @Auth parameters from the Swagger definitions.
+* I always want an easy way to validate my models, with the option to validate for required fields. A basic AbstractModel superclass, combined with a `Required` validation group, allows me to validate models in one line of code. To top it off, a `ValidationExceptionMapper` renders helpful error messages.
+
+Here are all these reusables in one place. Hope someone else finds it useful!
+
+Some of these classes are not of my invention:
+  * `AuthParamFilter` is from this  excellent blog post by [Pablo Meier](https://github.com/pablo-meier): https://www.reonomy.com/augmenting-dropwizard-with-swagger/, based on this StackOverflow answer by [Özkan Can](http://stackoverflow.com/users/2494590/%C3%96zkan-can) http://stackoverflow.com/questions/21911166/how-can-i-set-swagger-to-ignore-suspended-asyncresponse-in-asynchronous-jax-rs
 
 # Installation
 
@@ -33,19 +38,6 @@ And:
 ```
 
 # Features and Usage
-
-## JSON exception mappers
-
-If you include the below, then all error responses will return as JSON instead of HTML. Unanticipated `RuntimeException`s (e.g. `NullPointerException`s) will be logged as warnings.
-
-Add this to your Dropwizard app's main `Application` class's `run` method (assuming your `Environment` parameter is named `env`):
-
-```java
-env.jersey().register(new WebExceptionMapper());
-env.jersey().register(new JsonMappingExceptionMapper());
-env.jersey().register(new RuntimeExceptionMapper());
-env.jersey().register(new ValidationExceptionMapper());
-```
 
 ## http to https redirect for Amazon ELB
 
@@ -88,12 +80,18 @@ public abstract String getEmail();
 
 ## @Required Hibernate validation group annotation
 
-Mark fields as required with the `@Required` annotation. Will be used for `validateRequired()` -- see below
+On models, mark fields as required with a `@NotNull(groups = Required.class)` annotation. Will be used for `validateRequired()` -- see below
 
 ## AbstractModel superclass for validations
 
 If your model classes subclass `AbstractModel`, you can call `model.validate()` and `model.validateRequired()`. These methods will use Hibernate Validator to validate all annotated fields on the model, and throw a `ValidationException` if validation fails.
 
-Combined with the `ValidationExceptionMapper` above, you can use a one-liner at the top of your resource methods to ensure that your models are valid. (This is better than using the `@Valid` annotation on the parameter since it is more easily unit-testable and returns a nicer error message.)
+Be sure to add the exception mapper to your main class:
 
-Using a superclass is not to everyone's taste, but I like it because sometimes I want to override `validate()` with more detailed rules than can be easily expressed through annotations.
+```java
+env.jersey().register(new ValidationExceptionMapper());
+```
+
+Now you can use a one-liner at the top of your resource methods to ensure that your models are valid. (This is better than using the `@Valid` annotation on the parameter since it is more easily unit-testable and returns a nicer error message.)
+
+Using a superclass is not to everyone's taste, but I like it because sometimes I want to override `validate()` in the subclass with more detailed rules than can be easily expressed through annotations.
