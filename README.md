@@ -26,18 +26,6 @@ To use Starwizard, add the following to your project's POM file:
 </dependency>
 ```
 
-And:
-
-```
-<repositories>
-    <repository>
-        <id>stardog-maven</id>
-        <name>stardog-maven</name>
-        <url>http://maven.stardog.io</url>
-    </repository>
-</repositories>
-```
-
 # Features and Usage
 
 ## HTTP to HTTPS redirect for Amazon ELB
