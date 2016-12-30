@@ -115,7 +115,7 @@ curl -X POST "http://localhost:8081/tasks/log-level?logger=org.glassfish.jersey.
 
 ## Configure the ObjectMapper
 
-I always use Java 8's time library so I want JavaTimeModule support. I also prefer to be generous about ignoring unknown properties and including non-nulls (this is a matter of taste):
+I always use Java 8's time library so I want JavaTimeModule support. I like my Instants to render as ISO strings. I also prefer to be generous about ignoring unknown properties and including non-nulls (this is a matter of taste):
 
 ```java
 ObjectMapper objectMapper = env.getObjectMapper();
