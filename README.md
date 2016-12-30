@@ -98,7 +98,8 @@ None of the below involves starwizard -- these are all part of standard Dropwiza
 When you're debugging a nasty problem, there's nothing quite like examining full requests and responses (including headers). The below configures Jersey's `LoggingFeature` to log in DEBUG mode:
 
 ```java
-env.jersey().register(new LoggingFeature(Logger.getLogger(LoggingFeature.DEFAULT_LOGGER_NAME), Level.FINE, LoggingFeature.Verbosity.PAYLOAD_ANY, 100000));
+env.jersey().register(new LoggingFeature(Logger.getLogger(LoggingFeature.DEFAULT_LOGGER_NAME),
+                                         Level.FINE, LoggingFeature.Verbosity.PAYLOAD_ANY, 100000));
 ```
 
 If you're using default INFO log levels, requests/responses will not log. To temporarily turn on logging for your service, use the builtin Dropwizard `log-level` task:
