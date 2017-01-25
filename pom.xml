@@ -6,7 +6,7 @@
 
     <groupId>io.stardog</groupId>
     <artifactId>starwizard</artifactId>
-    <version>0.1.0</version>
+    <version>0.1.1</version>
 
     <name>${project.groupId}:${project.artifactId}</name>
     <description>Supporting classes for Dropwizard REST APIs</description>
@@ -35,7 +35,7 @@
     </scm>
 
     <properties>
-        <dropwizard.version>1.0.3</dropwizard.version>
+        <dropwizard.version>1.0.5</dropwizard.version>
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
     </properties>
@@ -55,6 +55,12 @@
             <groupId>com.smoketurner</groupId>
             <artifactId>dropwizard-swagger</artifactId>
             <version>1.0.0-1</version>
+        </dependency>
+        <dependency>
+            <groupId>com.google.auto.value</groupId>
+            <artifactId>auto-value</artifactId>
+            <version>1.3</version>
+            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>junit</groupId>

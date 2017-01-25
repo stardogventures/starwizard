@@ -68,6 +68,16 @@ env.jersey().register(new AuthDynamicFeature(
 
 # Other stuff included
 
+## Oauth related classes: OauthException, OauthExceptionMapper, AccessTokenResponse
+
+When writing an Oauth2-compliant resource for an authorization server, return `AccessTokenResponse` for a successfully issued token, and throw `OauthException` on a failure.
+
+Register the exception mapper to get the error returned in the manner required by the Oauth spec:
+
+```java
+env.jersey().register(new OauthExceptionMapper());
+```
+
 ## TooManyRequestsException
 
 HTTP status code 429 (Too Many Requests) is a useful error for rate-limiting schemes. This provides a JAX-RS exception for this code.
