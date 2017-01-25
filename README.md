@@ -98,3 +98,61 @@ On models, mark fields as required with a `@NotNull(groups = Required.class)` an
 Now you can force the use of required fields with the following annotation on the method signature in your resource:
 
 ``@Valid @Validated(Required.class) MyModel model``
+
+# Other setup recommendations
+
+None of the below involves starwizard -- these are all part of standard Dropwizard. But I usually do the below every time, so here they are in one place:
+
+## Allow logging of full request/response
+
+When you're debugging a nasty problem, there's nothing quite like examining full requests and responses (including headers). The below configures Jersey's `LoggingFeature` to log in DEBUG mode:
+
+```java
+env.jersey().register(new LoggingFeature(Logger.getLogger(LoggingFeature.DEFAULT_LOGGER_NAME),
+                                         Level.FINE, LoggingFeature.Verbosity.PAYLOAD_ANY, 100000));
+```
+
+If you're using default INFO log levels, requests/responses will not log. To temporarily turn on logging for your service, use the builtin Dropwizard `log-level` task:
+
+```shell
+curl -X POST "http://localhost:8081/tasks/log-level?logger=org.glassfish.jersey.logging.LoggingFeature&level=DEBUG"
+```
+
+Set it back after you're finished debugging:
+
+```shell
+curl -X POST "http://localhost:8081/tasks/log-level?logger=org.glassfish.jersey.logging.LoggingFeature&level=INFO"
+```
+
+## Configure the ObjectMapper
+
+I always use Java 8's time library so I want JavaTimeModule support. I like my Instants to render as ISO strings. I also prefer to be generous about ignoring unknown properties and including non-nulls (this is a matter of taste):
+
+```java
+ObjectMapper objectMapper = env.getObjectMapper();
+objectMapper.registerModule(new JavaTimeModule());
+objectMapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+objectMapper.disable(SerializationFeature.WRITE_DATE_TIMESTAMPS_AS_NANOSECONDS);
+objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+objectMapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
+```
+
+## Set up CORS to allow cross domain requests
+
+I nearly always host the API on a different domain than my UI, so the below is handy:
+
+```java
+final FilterRegistration.Dynamic cors = env.servlets().addFilter("CORS", CrossOriginFilter.class);
+cors.setInitParameter("allowedOrigins", "*");
+cors.setInitParameter("allowedHeaders", "X-Requested-With,Content-Type,Accept,Origin,Authorization");
+cors.setInitParameter("allowedMethods", "OPTIONS,GET,PUT,POST,DELETE,PATCH,HEAD");
+cors.addMappingForUrlPatterns(EnumSet.allOf(DispatcherType.class), true, "/*");
+```
+
+## Turn on multipart-form support (must include dropwizard-forms)
+
+Only if you are dealing with file uploads. I almost always wind up needing file uploads in my APIs.
+
+```java
+env.jersey().register(MultiPartFeature.class);
+```
