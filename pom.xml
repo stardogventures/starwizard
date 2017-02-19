@@ -6,7 +6,7 @@
 
     <groupId>io.stardog</groupId>
     <artifactId>starwizard</artifactId>
-    <version>0.1.1</version>
+    <version>0.1.2</version>
 
     <name>${project.groupId}:${project.artifactId}</name>
     <description>Supporting classes for Dropwizard REST APIs</description>

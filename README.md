@@ -65,6 +65,15 @@ env.jersey().register(new AuthDynamicFeature(
                 .buildAuthFilter()));
 ```
 
+## Support for Java 8 java.time Instant and LocalDate parameters
+
+It's often useful to use `Instant`s and `LocalDate`s as query string or path parameters.
+
+For `LocalDate`, the format must be standard ISO-8601 (YYYY-MM-DD). For `Instant`, you are permitted to either use millisecond timestamp integers, or ISO-8601 format.
+
+```
+env.jersey().register(new JavaTimeParamConverterProvider());
+```
 
 # Other stuff included
 
@@ -90,14 +99,6 @@ Sometimes (especially for email addresses) it's important to enforce lowercase. 
 @Lowercase
 public abstract String getEmail();
 ```
-
-## @Required Hibernate validation group annotation
-
-On models, mark fields as required with a `@NotNull(groups = Required.class)` annotation.
-
-Now you can force the use of required fields with the following annotation on the method signature in your resource:
-
-``@Valid @Validated(Required.class) MyModel model``
 
 # Other setup recommendations
 
