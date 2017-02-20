@@ -22,7 +22,7 @@ To use Starwizard, add the following to your project's POM file:
 <dependency>
     <groupId>io.stardog</groupId>
     <artifactId>starwizard</artifactId>
-    <version>0.1.0</version>
+    <version>0.1.1</version>
 </dependency>
 ```
 
