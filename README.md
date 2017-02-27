@@ -7,10 +7,12 @@ Dropwizard is awesome, and I've found it incredibly useful for building simple, 
 * I usually run Dropwizard APIs on AWS behind an Elastic Load Balancer. ELB doesn't have an automatic way to force HTTPS, so I always need an easy way to redirect HTTP requests to HTTPS.
 * I use [Swagger](http://swagger.io/) to document my APIs, using the excellent [dropwizard-swagger](https://github.com/smoketurner/dropwizard-swagger) bundle for swagger-core. However, swagger-core doesn't provide an easy way to exclude Dropwizard @Auth parameters from the Swagger definitions.
 * I want all my error responses to be JSON. These days Dropwizard defaults to JSON errors for most exceptions, which is great! But 401s when using auth still returns a text/plain response, which is not so great. A simple `JsonUnauthorizedHandler` class forces a JSON response.
+* I like using Java 8 time classes, but out of the box Jersey doesn't allow the use of `LocalDate` and `Instant` as query or path parameters. A simple `JavaTimeParamConverterProvider` supports these.
+* I nearly always need to write an Oauth2 provider, which needs responses and exceptions compliant with the Oauth2 spec. Resuable classes help here.
 
 Here are all these reusables in one place. Hope someone else finds it useful!
 
-Several of these classes are not of my invention:
+Some of these classes are not of my invention:
   * `AuthParamFilter` is from this  excellent blog post by [Pablo Meier](https://github.com/pablo-meier): https://www.reonomy.com/augmenting-dropwizard-with-swagger/, based on this StackOverflow answer by [Özkan Can](http://stackoverflow.com/users/2494590/%C3%96zkan-can) http://stackoverflow.com/questions/21911166/how-can-i-set-swagger-to-ignore-suspended-asyncresponse-in-asynchronous-jax-rs
   * `JsonUnauthorizedHandler` is from this equally excellent blog post by [Nick Babcock](https://github.com/nickbabcock): https://nbsoftsolutions.com/blog/writing-a-dropwizard-json-app
 
@@ -22,7 +24,7 @@ To use Starwizard, add the following to your project's POM file:
 <dependency>
     <groupId>io.stardog</groupId>
     <artifactId>starwizard</artifactId>
-    <version>0.1.1</version>
+    <version>0.1.2</version>
 </dependency>
 ```
 
