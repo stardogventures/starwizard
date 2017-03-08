@@ -15,7 +15,6 @@ import javax.inject.Inject;
 public class MongoHealthCheck extends HealthCheck {
     private final MongoDatabase db;
     private final static Document PING = new Document("ping", 1);
-    private final static Document OK = new Document("ok", 1.0);
     private final static Logger LOGGER = LoggerFactory.getLogger(MongoHealthCheck.class);
 
     @Inject
@@ -27,7 +26,11 @@ public class MongoHealthCheck extends HealthCheck {
     protected Result check() throws Exception {
         try {
             Document result = db.runCommand(PING);
-            if (!OK.equals(result)) {
+            int ok = 0;
+            if (result.containsKey("ok") && result.get("ok") instanceof Number) {
+                ok = result.get("ok", Number.class).intValue();
+            }
+            if (ok != 1) {
                 LOGGER.warn("Unexpected ping response: " + result.toString());
                 return Result.unhealthy("Unexpected ping response: " + result.toString());
             }
