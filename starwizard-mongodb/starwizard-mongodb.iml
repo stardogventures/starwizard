@@ -114,5 +114,9 @@
     <orderEntry type="library" scope="TEST" name="Maven: org.mozilla:rhino:1.7.7.1" level="project" />
     <orderEntry type="library" scope="TEST" name="Maven: com.vividsolutions:jts:1.13" level="project" />
     <orderEntry type="library" scope="TEST" name="Maven: de.grundid.opendatalab:geojson-jackson:1.2" level="project" />
+    <orderEntry type="library" scope="TEST" name="Maven: org.mockito:mockito-core:2.7.21" level="project" />
+    <orderEntry type="library" scope="TEST" name="Maven: net.bytebuddy:byte-buddy:1.6.11" level="project" />
+    <orderEntry type="library" scope="TEST" name="Maven: net.bytebuddy:byte-buddy-agent:1.6.11" level="project" />
+    <orderEntry type="library" scope="TEST" name="Maven: org.objenesis:objenesis:2.5" level="project" />
   </component>
 </module>

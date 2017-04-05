@@ -22,15 +22,15 @@ public class LbHttpsRedirectFilter implements Filter {
     }
 
     @Override
-    public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse, FilterChain filterChain)
+    public void doFilter(ServletRequest request, ServletResponse response, FilterChain filterChain)
             throws IOException, ServletException {
-        HttpServletRequest httpRequest = (HttpServletRequest)servletRequest;
-        if ("http".equals(httpRequest.getHeader("X-Forwarded-Proto"))) {
-            String url = httpRequest.getRequestURL().toString();
-            HttpServletResponse httpResponse = (HttpServletResponse)servletResponse;
+        if (request instanceof HttpServletRequest && response instanceof HttpServletResponse
+                && "http".equals(((HttpServletRequest)request).getHeader("X-Forwarded-Proto"))) {
+            String url = ((HttpServletRequest)request).getRequestURL().toString();
+            HttpServletResponse httpResponse = (HttpServletResponse)response;
             httpResponse.sendRedirect(url.replace("http://", "https://"));
         } else {
-            filterChain.doFilter(servletRequest, servletResponse);
+            filterChain.doFilter(request, response);
         }
     }
 
