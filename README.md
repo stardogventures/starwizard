@@ -1,6 +1,6 @@
 # starwizard
 
-Supporting classes for Dropwizard REST APIs
+### Supporting classes for Dropwizard REST APIs
 
 Dropwizard is awesome, and I've found it incredibly useful for building simple, scalable REST APIs. But while Dropwizard is opinionated, there are some things that it (appropriately) doesn't include in the box, which I've found I tend to re-use over and over when building Dropwizard APIs.
 
@@ -15,17 +15,31 @@ Here are all these reusables in one place. Hope someone else finds it useful!
 Some of these classes are not of my invention:
   * `AuthParamFilter` is from this  excellent blog post by [Pablo Meier](https://github.com/pablo-meier): https://www.reonomy.com/augmenting-dropwizard-with-swagger/, based on this StackOverflow answer by [Özkan Can](http://stackoverflow.com/users/2494590/%C3%96zkan-can) http://stackoverflow.com/questions/21911166/how-can-i-set-swagger-to-ignore-suspended-asyncresponse-in-asynchronous-jax-rs
   * `JsonUnauthorizedHandler` is from this equally excellent blog post by [Nick Babcock](https://github.com/nickbabcock): https://nbsoftsolutions.com/blog/writing-a-dropwizard-json-app
+  
+# Module: starwizard-mongodb
 
-# Installation
+New in version 0.1.3 - a handful of useful classes specifically aimed at using MongoDB.
 
-To use Starwizard, add the following to your project's POM file:
+Read the [starwizard-mongodb README](/starwizard-mongodb/README.md) for more information.
+
+# Installation: starwizard-core
+
+To use Starwizard Core, add the following to your project's POM file:
 
 ```
-<dependency>
-    <groupId>io.stardog</groupId>
-    <artifactId>starwizard</artifactId>
-    <version>0.1.2</version>
-</dependency>
+<properties>
+    <starwizard.version>0.1.3</starwizard.version>
+    ...
+</properties>
+
+<dependencies>
+  <dependency>
+    <groupId>io.stardog.starwizard</groupId>
+    <artifactId>starwizard-core</artifactId>
+    <version>${starwizard.version}</version>
+  </dependency>
+  ...
+</dependencies>
 ```
 
 # Features and Usage
@@ -102,7 +116,7 @@ Sometimes (especially for email addresses) it's important to enforce lowercase. 
 public abstract String getEmail();
 ```
 
-# Other setup recommendations
+# Other Dropwizard setup recommendations
 
 None of the below involves starwizard -- these are all part of standard Dropwizard. But I usually do the below every time, so here they are in one place:
 
@@ -129,15 +143,16 @@ curl -X POST "http://localhost:8081/tasks/log-level?logger=org.glassfish.jersey.
 
 ## Configure the ObjectMapper
 
-I always use Java 8's time library so I want JavaTimeModule support. I like my Instants to render as ISO strings. I also prefer to be generous about ignoring unknown properties and including non-nulls (this is a matter of taste):
+I always use Java 8 so I want support for Optionals and JavaTime date/time classes. I like my Instants to render as ISO-8601 strings. I also prefer to be generous about ignoring unknown properties on input, and do not like exposing null fields.
 
 ```java
 ObjectMapper objectMapper = env.getObjectMapper();
+objectMapper.registerModule(new Jdk8Module());
 objectMapper.registerModule(new JavaTimeModule());
 objectMapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
 objectMapper.disable(SerializationFeature.WRITE_DATE_TIMESTAMPS_AS_NANOSECONDS);
 objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-objectMapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
+objectMapper.setSerializationInclusion(JsonInclude.Include.NON_ABSENT);
 ```
 
 ## Set up CORS to allow cross domain requests
@@ -159,3 +174,8 @@ Only if you are dealing with file uploads. I almost always wind up needing file 
 ```java
 env.jersey().register(MultiPartFeature.class);
 ```
+
+# Release Notes
+
+- **0.1.3 (2017-04-05)**
+  - added `starwizard-mongodb` module and moved primary module into `starwizard-core`
