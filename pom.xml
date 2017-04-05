@@ -7,7 +7,7 @@
     <groupId>io.stardog.starwizard</groupId>
     <artifactId>starwizard</artifactId>
     <packaging>pom</packaging>
-    <version>0.1.3-SNAPSHOT</version>
+    <version>0.1.3</version>
     <modules>
         <module>starwizard-mongodb</module>
         <module>starwizard-core</module>
