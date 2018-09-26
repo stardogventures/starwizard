@@ -1,0 +1,233 @@
+package io.stardog.starwizard.services.stripe;
+
+import com.google.common.base.Preconditions;
+import com.google.common.collect.ImmutableMap;
+import com.stripe.Stripe;
+import com.stripe.exception.StripeException;
+import com.stripe.model.*;
+import com.stripe.net.Webhook;
+import io.stardog.starwizard.services.common.AsyncService;
+import io.stardog.starwizard.services.stripe.exceptions.UncheckedStripeException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import javax.annotation.Nullable;
+import javax.inject.Inject;
+import javax.inject.Named;
+import javax.inject.Singleton;
+import java.math.BigDecimal;
+import java.util.Currency;
+import java.util.HashMap;
+import java.util.Map;
+
+/**
+ * StripeService is a wrapper around Stripe's Java API that makes it easier to use in the following ways:
+ *   - more mockable/testable, does not rely on static invocations
+ *   - wraps checked exceptions and throws UncheckedStripeExceptions instead
+ *   - monetary amounts expressed as BigDecimals instead of cents
+ *   - checks whether you are using a live stripe key in a non-prod environment, and logs a warning if you are
+ */
+@Singleton
+public class StripeService {
+    private final String signingSecret;
+    private final Logger LOGGER = LoggerFactory.getLogger(StripeService.class);
+
+    private StripeService(String apiKey, @Nullable String signingSecret) {
+        Stripe.apiKey = apiKey;
+        Stripe.setAppInfo("starwizard-services", "0.2.0", "https://github.com/stardogventures/starwizard");
+        this.signingSecret = signingSecret;
+    }
+
+    public static StripeService of(String apiKey) {
+        return new StripeService(apiKey, null);
+    }
+
+    public static StripeService of(String apiKey, String signingSecret) {
+        return new StripeService(apiKey, signingSecret);
+    }
+
+    @Inject
+    public StripeService(AsyncService asyncService,
+                         @Named("stripeSecretKey") String apiKey,
+                         @Named("stripeSigningSecret") String signingSecret,
+                         @Named("env") String env) {
+        this(apiKey, signingSecret);
+
+        // in non-production environment, provide a warning if a live stripe key is in use
+        if (!env.equals("prod") && apiKey.startsWith("sk_live_")) {
+            asyncService.submit(() -> {
+                try {
+                    Thread.sleep(5000L);    // sleep long enough to get past normal startup phase, so this message will be visible
+                } catch (InterruptedException e) {
+                    // okay to swallow this
+                }
+                LOGGER.warn("***** WARNING: LIVE STRIPE KEY IN USE IN NON-PRODUCTION ENVIRONMENT " + env + " *****");
+            });
+        }
+    }
+
+    /**
+     * Run a one-off charge, either from a customer or a source token.
+     * @param amount    amount of the charge
+     * @param currency  currency of the charge
+     * @param token token (should either be a source token, or a customer identifier)
+     * @param description   description of the charge
+     * @param metadata  additional metadata to pass
+     * @return  the stripe Charge object
+     * @throws UncheckedStripeException if something went wrong
+     */
+    public Charge createCharge(BigDecimal amount, Currency currency, String token, @Nullable String description, @Nullable Map<String,Object> metadata) {
+        Preconditions.checkNotNull(amount);
+        Preconditions.checkNotNull(currency);
+
+        Map<String,Object> chargeParams = new HashMap<>();
+        chargeParams.put("amount", amount.multiply(new BigDecimal("100")).longValue());
+        chargeParams.put("currency", currency.getCurrencyCode());
+        if (description != null) {
+            chargeParams.put("description", description);
+        }
+        if (token.startsWith("cus_")) {
+            chargeParams.put("customer", token);
+        } else {
+            chargeParams.put("source", token);
+        }
+        if (metadata != null) {
+            chargeParams.put("metadata", metadata);
+        }
+
+        try {
+            return Charge.create(chargeParams);
+        } catch (StripeException e) {
+            throw new UncheckedStripeException(e);
+        }
+    }
+
+    /**
+     * Refund some amount of a particular charge.
+     * @param chargeId  charge id
+     * @param amount    amount to refund
+     * @param metadata  metadata to attach to the refund
+     * @return  refund object
+     * @throws UncheckedStripeException if something went wrong
+     */
+    public Refund refundCharge(String chargeId, BigDecimal amount, @Nullable Map<String,Object> metadata) {
+        Preconditions.checkNotNull(chargeId);
+        Preconditions.checkNotNull(amount);
+
+        Map<String,Object> refundParams = new HashMap<>();
+        refundParams.put("charge", chargeId);
+        refundParams.put("amount", amount.multiply(new BigDecimal("100")).longValue());
+        if (metadata != null) {
+            refundParams.put("metadata", metadata);
+        }
+
+        try {
+            return Refund.create(refundParams);
+        } catch (StripeException e) {
+            throw new UncheckedStripeException(e);
+        }
+    }
+
+    /**
+     * Create a customer based on a charge token.
+     * @param token charge token
+     * @param name  customer name
+     * @param email customer email
+     * @param metadata  additional metadata to save for the customer
+     * @return  stripe Customer object
+     * @throws UncheckedStripeException if something went wrong
+     */
+    public Customer createCustomer(String token, String name, @Nullable String email, @Nullable Map<String,Object> metadata) {
+        Preconditions.checkNotNull(token);
+        Preconditions.checkNotNull(name);
+
+        Map<String,Object> params = new HashMap<>();
+        params.put("description", name);
+        if (email != null) {
+            params.put("email", email);
+        }
+        params.put("source", token);
+
+        if (metadata != null) {
+            params.put("metadata", metadata);
+        }
+
+        try {
+            return Customer.create(params);
+        } catch (StripeException e) {
+            throw new UncheckedStripeException(e);
+        }
+    }
+
+    /**
+     * Change the credit card source for an existing customer by updating their source field
+     * @param customerId    customerId
+     * @param token new source token
+     * @throws UncheckedStripeException if something went wrong
+     */
+    public void updateCustomerSource(String customerId, String token) {
+        Preconditions.checkNotNull(customerId);
+        Preconditions.checkNotNull(token);
+
+        try {
+            Customer cust = Customer.retrieve(customerId);
+
+            Map<String, Object> params = ImmutableMap.of("source", token);
+            cust.update(params);
+        } catch (StripeException e) {
+            throw new UncheckedStripeException(e);
+        }
+    }
+
+    /**
+     * Given a particular payout, build a map of the charge ids, and the amount of each charge, that correspond to
+     * that payout.
+     * @param payoutId  payout id
+     * @return  map of charge ids to payout amounts
+     * @throws UncheckedStripeException if something went wrong
+     */
+    public Map<String, BigDecimal> getPayoutChargeIdsAndFees(String payoutId) {
+        try {
+            Map<String,Object> params = new HashMap<>();
+            params.put("payout", payoutId);
+            params.put("limit", 100);
+
+            ImmutableMap.Builder<String,BigDecimal> result = ImmutableMap.builder();
+            BalanceTransactionCollection list = BalanceTransaction.list(params);
+            for (BalanceTransaction trans : list.autoPagingIterable()) {
+                String chargeId = trans.getSource();
+                BigDecimal fee = new BigDecimal(trans.getFee()).multiply(new BigDecimal(".01"));
+                if (chargeId.startsWith("re_") || chargeId.startsWith("ch_")) {
+                    result.put(chargeId, fee);
+                }
+            }
+            return result.build();
+
+        } catch (StripeException e) {
+            throw new UncheckedStripeException(e);
+        }
+    }
+
+    /**
+     * Return Stripe event information
+     * @param eventId   event id
+     * @return  Stripe event object
+     */
+    public Event getEvent(String eventId) {
+        try {
+            return Event.retrieve(eventId);
+        } catch (StripeException e) {
+            throw new UncheckedStripeException(e);
+        }
+    }
+
+    /**
+     * Process a webhook given the raw payload and the signature header.
+     * @param payload   payload content
+     * @param signature contents of Stripe-Signature header
+     * @return  the Stripe event object
+     */
+    public Event processWebhook(String payload, String signature) throws Exception {
+        return Webhook.constructEvent(payload, signature, signingSecret);
+    }
+}
