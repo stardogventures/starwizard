@@ -1,11 +1,8 @@
 package io.stardog.starwizard.services.parameter;
 
-import javax.inject.Singleton;
-import java.util.Collection;
 import java.util.Map;
 import java.util.Optional;
 
-@Singleton
 public interface ParameterService {
     Map<String,String> getParameters(Iterable<String> params);
     Optional<String> optParameter(String name);
