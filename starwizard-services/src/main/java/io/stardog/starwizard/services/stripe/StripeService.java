@@ -5,6 +5,7 @@ import com.google.common.collect.ImmutableMap;
 import com.stripe.Stripe;
 import com.stripe.exception.StripeException;
 import com.stripe.model.*;
+import com.stripe.net.RequestOptions;
 import com.stripe.net.Webhook;
 import io.stardog.starwizard.services.common.AsyncService;
 import io.stardog.starwizard.services.stripe.exceptions.UncheckedStripeException;
@@ -16,9 +17,8 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 import java.math.BigDecimal;
-import java.util.Currency;
-import java.util.HashMap;
-import java.util.Map;
+import java.time.Instant;
+import java.util.*;
 
 /**
  * StripeService is a wrapper around Stripe's Java API that makes it easier to use in the following ways:
@@ -174,6 +174,86 @@ public class StripeService {
 
             Map<String, Object> params = ImmutableMap.of("source", token);
             cust.update(params);
+        } catch (StripeException e) {
+            throw new UncheckedStripeException(e);
+        }
+    }
+
+    /**
+     * Create a subscription for a customer, passing a list of planIds to subscribe to (quantity 1 for each)
+     * @param customerId    customer id
+     * @param planIds   plan ids to subscribe to
+     * @param extraParams   any extra parameters to pass (Stripe has a lot of options)
+     * @return  newly created subscription
+     */
+    public Subscription createSubscription(String customerId, Collection<String> planIds, @Nullable Map<String,Object> extraParams) {
+        Map<String,Long> planQuantities = new LinkedHashMap<>();
+        for (String planId : planIds) {
+            planQuantities.put(planId, 1L);
+        }
+        return createSubscription(customerId, planQuantities, extraParams);
+    }
+
+    /**
+     * Create a subscription for a customer with quantities >1
+     * @param customerId    customer id
+     * @param planQuantities    map of plan ids to quantities
+     * @param extraParams   extra parameters
+     * @return  newly created subscription
+     */
+    public Subscription createSubscription(String customerId, Map<String,Long> planQuantities, @Nullable Map<String,Object> extraParams) {
+        Preconditions.checkNotNull(customerId);
+        Preconditions.checkNotNull(planQuantities);
+
+        Map<String,Object> params = new HashMap<>();
+        params.put("customer", customerId);
+        List<Map<String,Object>> items = new ArrayList<>();
+        for (Map.Entry<String,Long> q : planQuantities.entrySet()) {
+            items.add(ImmutableMap.of("plan", q.getKey(), "quantity", q.getValue()));
+        }
+        params.put("items", items);
+        if (extraParams != null) {
+            params.putAll(extraParams);
+        }
+        try {
+            return Subscription.create(params);
+        } catch (StripeException e) {
+            throw new UncheckedStripeException(e);
+        }
+    }
+
+    /**
+     * Retrieve a subscription
+     * @param subscriptionId    subscription id
+     * @return  Subscription data
+     */
+    public Subscription getSubscription(String subscriptionId) {
+        Preconditions.checkNotNull(subscriptionId);
+        try {
+            return Subscription.retrieve(subscriptionId);
+        } catch (StripeException e) {
+            throw new UncheckedStripeException(e);
+        }
+    }
+
+    /**
+     * Record usage for a particular subscription item and a particular timestamp
+     * @param subscriptionItemId    subscription item
+     * @param timestamp timestamp to record the usage on
+     * @param quantity  quantity of usage
+     * @return  the usage record
+     */
+    public UsageRecord recordUsage(String subscriptionItemId, Instant timestamp, long quantity) {
+        Preconditions.checkNotNull(subscriptionItemId);
+        Preconditions.checkNotNull(timestamp);
+
+        try {
+            Map<String, Object> params = ImmutableMap.of(
+                    "subscription_item", subscriptionItemId,
+                    "quantity", quantity,
+                    "timestamp", timestamp.getEpochSecond()
+            );
+            return UsageRecord.create(params, RequestOptions.builder().build());
         } catch (StripeException e) {
             throw new UncheckedStripeException(e);
         }
