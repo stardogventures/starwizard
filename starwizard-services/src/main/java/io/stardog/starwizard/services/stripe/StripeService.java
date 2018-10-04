@@ -209,7 +209,9 @@ public class StripeService {
         params.put("customer", customerId);
         List<Map<String,Object>> items = new ArrayList<>();
         for (Map.Entry<String,Long> q : planQuantities.entrySet()) {
-            items.add(ImmutableMap.of("plan", q.getKey(), "quantity", q.getValue()));
+            items.add(q.getValue() > 1
+                    ? ImmutableMap.of("plan", q.getKey(), "quantity", q.getValue())
+                    : ImmutableMap.of("plan", q.getKey()));
         }
         params.put("items", items);
         if (extraParams != null) {
