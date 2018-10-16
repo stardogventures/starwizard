@@ -30,7 +30,7 @@ import java.util.stream.Collectors;
  * "OFFLINE", which is usually better than returning an error.
  *
  * By convention, env vars are UPPERCASE_UNDERSCORE and SSM params are snake_case. Typically you would prefix
- * your env vars with "APPNAME_", and prefix the SSM parameters with "/<env>/<appname>"
+ * your env vars with "APPNAME_", and prefix the SSM parameters with "/env/appname"
  *
  * For example, you might set envPrefix to "EXAMPLE_" and ssmPrefix to "/prod/example/". When you request the parameter
  * "stripe_api_key", it will check to see if there is an EXAMPLE_STRIPE_API_KEY env var; if there isn't, it'll request

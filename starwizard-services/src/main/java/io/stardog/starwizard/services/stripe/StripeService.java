@@ -3,6 +3,7 @@ package io.stardog.starwizard.services.stripe;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableMap;
 import com.stripe.Stripe;
+import com.stripe.exception.SignatureVerificationException;
 import com.stripe.exception.StripeException;
 import com.stripe.model.*;
 import com.stripe.net.RequestOptions;
@@ -195,7 +196,7 @@ public class StripeService {
     }
 
     /**
-     * Create a subscription for a customer with quantities >1
+     * Create a subscription for a customer with quantities more than 1
      * @param customerId    customer id
      * @param planQuantities    map of plan ids to quantities
      * @param extraParams   extra parameters
@@ -309,7 +310,11 @@ public class StripeService {
      * @param signature contents of Stripe-Signature header
      * @return  the Stripe event object
      */
-    public Event processWebhook(String payload, String signature) throws Exception {
-        return Webhook.constructEvent(payload, signature, signingSecret);
+    public Event processWebhook(String payload, String signature) {
+        try {
+            return Webhook.constructEvent(payload, signature, signingSecret);
+        } catch (SignatureVerificationException e) {
+            throw new UncheckedStripeException(e);
+        }
     }
 }
