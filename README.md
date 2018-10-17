@@ -5,7 +5,6 @@
 Dropwizard is awesome, and I've found it incredibly useful for building simple, scalable REST APIs. But while Dropwizard is opinionated, there are some things that it (appropriately) doesn't include in the box, which I've found I tend to re-use over and over when building Dropwizard APIs.
 
 * I usually run Dropwizard APIs on AWS behind an Elastic Load Balancer. ELB doesn't have an automatic way to force HTTPS, so I always need an easy way to redirect HTTP requests to HTTPS.
-* I use [Swagger](http://swagger.io/) to document my APIs, using the excellent [dropwizard-swagger](https://github.com/smoketurner/dropwizard-swagger) bundle for swagger-core. However, swagger-core doesn't provide an easy way to exclude Dropwizard @Auth parameters from the Swagger definitions.
 * I want all my error responses to be JSON. These days Dropwizard defaults to JSON errors for most exceptions, which is great! But 401s when using auth still returns a text/plain response, which is not so great. A simple `JsonUnauthorizedHandler` class forces a JSON response.
 * I like using Java 8 time classes, but out of the box Jersey doesn't allow the use of `LocalDate` and `Instant` as query or path parameters. A simple `JavaTimeParamConverterProvider` supports these.
 * I nearly always need to write an Oauth2 provider, which needs responses and exceptions compliant with the Oauth2 spec. Resuable classes help here.
@@ -13,7 +12,7 @@ Dropwizard is awesome, and I've found it incredibly useful for building simple, 
 Here are all these reusables in one place. Hope someone else finds it useful!
 
 Some of these classes are not of my invention:
-  * `AuthParamFilter` is from this  excellent blog post by [Pablo Meier](https://github.com/pablo-meier): https://www.reonomy.com/augmenting-dropwizard-with-swagger/, based on this StackOverflow answer by [Özkan Can](http://stackoverflow.com/users/2494590/%C3%96zkan-can) http://stackoverflow.com/questions/21911166/how-can-i-set-swagger-to-ignore-suspended-asyncresponse-in-asynchronous-jax-rs
+  * `AuthParamFilter` is from this  excellent blog post by [Pablo Meier](https://github.com/pablo-meier): https://www.reonomy.com/augmenting-dropwizard-with-swagger/, based on this StackOverflow answer by [Özkan Can](http://stackoverflow.com/users/2494590/%C3%96zkan-can) http://stackoverflow.com/questions/21911166/how-can-i-set-swagger-to-ignore-suspended-asyncresponse-in-asynchronous-jax-rs [Note: This is no longer necessary since in newer versions of Swagger you can now use `hidden = true` in @ApiParam]
   * `JsonUnauthorizedHandler` is from this equally excellent blog post by [Nick Babcock](https://github.com/nickbabcock): https://nbsoftsolutions.com/blog/writing-a-dropwizard-json-app
   
 # Module: starwizard-mongodb
@@ -22,13 +21,19 @@ New in version 0.1.3 - a handful of useful classes specifically aimed at using M
 
 Read the [starwizard-mongodb README](/starwizard-mongodb/README.md) for more information.
 
+# Module: starwizard-services
+
+New in version 0.2.0 - reusable supporting service classes, including Slack, Stripe, AWS SSM, and Google Geocoding APIs.
+
+Read the [starwizard-services README](/starwizard-services/README.md) for more information.
+
 # Installation: starwizard-core
 
 To use Starwizard Core, add the following to your project's POM file:
 
 ```
 <properties>
-    <starwizard.version>0.1.3</starwizard.version>
+    <starwizard.version>0.2.0</starwizard.version>
     ...
 </properties>
 
@@ -40,6 +45,26 @@ To use Starwizard Core, add the following to your project's POM file:
   </dependency>
   ...
 </dependencies>
+```
+
+To add MongoDB:
+
+```
+  <dependency>
+    <groupId>io.stardog.starwizard</groupId>
+    <artifactId>starwizard-mongodb</artifactId>
+    <version>${starwizard.version}</version>
+  </dependency>
+```
+
+To add Services:
+
+```
+  <dependency>
+    <groupId>io.stardog.starwizard</groupId>
+    <artifactId>starwizard-services</artifactId>
+    <version>${starwizard.version}</version>
+  </dependency>
 ```
 
 # Features and Usage
@@ -54,19 +79,6 @@ env.getApplicationContext().addFilter(new FilterHolder(new LbHttpsRedirectFilter
 ```
 
 I often add an `forceHttps` setting to the yml file to conditionally determine whether to do this, so I have some flexibility for non-HTTPS dev deployments.
-
-## swagger 'internal' designation
-
-If you are using Swagger, the following will allow you to designate parameters as "internal", meaning they won't be included in the Swagger definitions. This is primarily useful for @Auth parameters.
-
-```java
-FilterFactory.setFilter(new AuthParamFilter());
-```
-
-Example of how to define a parameter as internal:
-```java
-@ApiParam(access = "internal") @Auth User user,
-```
 
 ## JSON 401 responses
 
@@ -161,7 +173,7 @@ I nearly always host the API on a different domain than my UI, so the below is h
 
 ```java
 final FilterRegistration.Dynamic cors = env.servlets().addFilter("CORS", CrossOriginFilter.class);
-cors.setInitParameter("allowedOrigins", "*");
+cors.setInitParameter("allowedOrigins", "https://web.example.com"); // or replace with your domain names
 cors.setInitParameter("allowedHeaders", "X-Requested-With,Content-Type,Accept,Origin,Authorization");
 cors.setInitParameter("allowedMethods", "OPTIONS,GET,PUT,POST,DELETE,PATCH,HEAD");
 cors.addMappingForUrlPatterns(EnumSet.allOf(DispatcherType.class), true, "/*");
@@ -174,8 +186,3 @@ Only if you are dealing with file uploads. I almost always wind up needing file 
 ```java
 env.jersey().register(MultiPartFeature.class);
 ```
-
-# Release Notes
-
-- **0.1.3 (2017-04-05)**
-  - added `starwizard-mongodb` module and moved primary module into `starwizard-core`
