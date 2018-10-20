@@ -15,9 +15,7 @@ import org.slf4j.LoggerFactory;
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
@@ -96,14 +94,19 @@ public class AwsSsmParameterService implements ParameterService {
                     builder.put(param, OFFLINE_PLACEHOLDER_STRING);
                 }
             } else {
-                GetParametersRequest request = new GetParametersRequest()
-                        .withNames(ssmNames)
-                        .withWithDecryption(true);
-                GetParametersResult result = ssm.getParameters(request);
-                for (Parameter p : result.getParameters()) {
-                    builder.put(p.getName().replaceAll(ssmPrefix, ""), p.getValue());
+                List<String> ssmParams = new ArrayList<>(ssmNames);
+                // SSM only allows returning 10 parameters at a time, so do in groups of 10 if needed
+                for (int i=0; i < (ssmParams.size() + 9) / 10; i++) {
+                    List<String> batchParams = ssmParams.subList(i*10, Math.min(ssmParams.size(), (i+1)*10));
+                    GetParametersRequest request = new GetParametersRequest()
+                            .withNames(batchParams)
+                            .withWithDecryption(true);
+                    GetParametersResult result = ssm.getParameters(request);
+                    for (Parameter p : result.getParameters()) {
+                        builder.put(p.getName().replaceAll(ssmPrefix, ""), p.getValue());
+                    }
+                    LOGGER.info("Retrieved parameters from SSM: " + batchParams);
                 }
-                LOGGER.info("Retrieved parameters from SSM: " + ssmNames);
             }
         }
 
