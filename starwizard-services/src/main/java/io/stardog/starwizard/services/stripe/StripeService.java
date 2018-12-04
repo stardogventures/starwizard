@@ -317,4 +317,17 @@ public class StripeService {
             throw new UncheckedStripeException(e);
         }
     }
+
+    /**
+     * Return a number of invoices
+     * @param params    stripe parameters
+     * @return  collection of invoices
+     */
+    public InvoiceCollection listInvoices(Map<String,Object> params) {
+        try {
+            return Invoice.list(params);
+        } catch (StripeException e) {
+            throw new UncheckedStripeException(e);
+        }
+    }
 }
