@@ -35,7 +35,7 @@ public class StripeService {
 
     private StripeService(String apiKey, @Nullable String signingSecret) {
         Stripe.apiKey = apiKey;
-        Stripe.setAppInfo("starwizard-services", "0.2.0", "https://github.com/stardogventures/starwizard");
+        Stripe.setAppInfo("starwizard-services", "0.2.1", "https://github.com/stardogventures/starwizard");
         this.signingSecret = signingSecret;
     }
 
@@ -129,17 +129,21 @@ public class StripeService {
         }
     }
 
+    @Deprecated
+    public Customer createCustomer(@Nullable String token, String name, @Nullable String email, @Nullable Map<String,Object> metadata) {
+        return createCustomer(name, email, token, null, metadata);
+    }
+
     /**
      * Create a customer based on a charge token.
-     * @param token charge token
      * @param name  customer name
      * @param email customer email
+     * @param token charge token
      * @param metadata  additional metadata to save for the customer
      * @return  stripe Customer object
      * @throws UncheckedStripeException if something went wrong
      */
-    public Customer createCustomer(String token, String name, @Nullable String email, @Nullable Map<String,Object> metadata) {
-        Preconditions.checkNotNull(token);
+    public Customer createCustomer(String name, @Nullable String email, @Nullable String token, @Nullable Address shippingAddress, @Nullable Map<String,Object> metadata) {
         Preconditions.checkNotNull(name);
 
         Map<String,Object> params = new HashMap<>();
@@ -147,14 +151,56 @@ public class StripeService {
         if (email != null) {
             params.put("email", email);
         }
-        params.put("source", token);
+        if (token != null) {
+            params.put("source", token);
+        }
 
         if (metadata != null) {
             params.put("metadata", metadata);
         }
+        if (shippingAddress != null) {
+            Map<String,Object> shippingAddressMap = new HashMap<>();
+            shippingAddressMap.put("line1", shippingAddress.getLine1());
+            shippingAddressMap.put("line2", shippingAddress.getLine2());
+            shippingAddressMap.put("city", shippingAddress.getCity());
+            shippingAddressMap.put("state", shippingAddress.getState());
+            shippingAddressMap.put("country", shippingAddress.getCountry());
+            shippingAddressMap.put("postal_code", shippingAddress.getPostalCode());
+            params.put("shipping", ImmutableMap.of("name", name, "address", shippingAddressMap));
+        }
 
         try {
             return Customer.create(params);
+        } catch (StripeException e) {
+            throw new UncheckedStripeException(e);
+        }
+    }
+
+    /**
+     * Return a customer
+     * @param customerId    customer id
+     * @return  customer data
+     */
+    public Customer getCustomer(String customerId) {
+        Preconditions.checkNotNull(customerId);
+        try {
+            return Customer.retrieve(customerId);
+        } catch (StripeException e) {
+            throw new UncheckedStripeException(e);
+        }
+    }
+
+    /**
+     * Update a customer
+     * @param customer  customer to update
+     * @param update    update data
+     * @return  updated customer
+     */
+    public Customer updateCustomer(Customer customer, Map<String,Object> update) {
+        Preconditions.checkNotNull(customer);
+        Preconditions.checkNotNull(update);
+        try {
+            return customer.update(update);
         } catch (StripeException e) {
             throw new UncheckedStripeException(e);
         }
@@ -226,6 +272,39 @@ public class StripeService {
     }
 
     /**
+     * Update a subscription.
+     * @param subscription  subscription to update
+     * @param update    update data
+     * @return  updated subscription
+     */
+    public Subscription updateSubscription(Subscription subscription, Map<String,Object> update) {
+        Preconditions.checkNotNull(subscription);
+        Preconditions.checkNotNull(update);
+
+        try {
+            return subscription.update(update);
+        } catch (StripeException e) {
+            throw new UncheckedStripeException(e);
+        }
+    }
+
+    /**
+     * Cancel a subscription.
+     * @param subscription  subscription to cancel
+     * @param params    parameters
+     * @return  cancelled subscription
+     */
+    public Subscription cancelSubscription(Subscription subscription, @Nullable Map<String,Object> params) {
+        Preconditions.checkNotNull(subscription);
+
+        try {
+            return subscription.cancel(params);
+        } catch (StripeException e) {
+            throw new UncheckedStripeException(e);
+        }
+    }
+
+    /**
      * Retrieve a subscription
      * @param subscriptionId    subscription id
      * @return  Subscription data
@@ -234,6 +313,23 @@ public class StripeService {
         Preconditions.checkNotNull(subscriptionId);
         try {
             return Subscription.retrieve(subscriptionId);
+        } catch (StripeException e) {
+            throw new UncheckedStripeException(e);
+        }
+    }
+
+    public Plan getPlan(String planId) {
+        Preconditions.checkNotNull(planId);
+        try {
+            return Plan.retrieve(planId);
+        } catch (StripeException e) {
+            throw new UncheckedStripeException(e);
+        }
+    }
+
+    public PlanCollection findAllPlans() {
+        try {
+            return Plan.list(ImmutableMap.of());
         } catch (StripeException e) {
             throw new UncheckedStripeException(e);
         }
