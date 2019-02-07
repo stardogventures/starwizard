@@ -415,6 +415,20 @@ public class StripeService {
     }
 
     /**
+     * Return an invoice with the given id
+     * @param id    invoice id
+     * @return  invoice object
+     * @throws UncheckedStripeException if the invoice id is invalid
+     */
+    public Invoice getInvoice(String id) {
+        try {
+            return Invoice.retrieve(id);
+        } catch (StripeException e) {
+            throw new UncheckedStripeException(e);
+        }
+    }
+
+    /**
      * Return a number of invoices
      * @param params    stripe parameters
      * @return  collection of invoices
