@@ -348,11 +348,10 @@ public class StripeService {
 
         try {
             Map<String, Object> params = ImmutableMap.of(
-                    "subscription_item", subscriptionItemId,
                     "quantity", quantity,
                     "timestamp", timestamp.getEpochSecond()
             );
-            return UsageRecord.create(params, RequestOptions.builder().build());
+            return UsageRecord.createOnSubscriptionItem(subscriptionItemId, params, RequestOptions.builder().build());
         } catch (StripeException e) {
             throw new UncheckedStripeException(e);
         }
