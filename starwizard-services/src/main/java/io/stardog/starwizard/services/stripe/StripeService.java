@@ -191,6 +191,24 @@ public class StripeService {
     }
 
     /**
+     * Return a customer
+     * @param customerId    customer id
+     * @param customerId    parameters for the retreive operation
+     * @return  customer data
+     */
+    public Customer getCustomer(String customerId, HashMap<String, Object> params) {
+
+        Preconditions.checkNotNull(customerId);
+        Preconditions.checkNotNull(params);
+
+        try {
+            return Customer.retrieve(customerId,params);
+        } catch (StripeException e) {
+            throw new UncheckedStripeException(e);
+        }
+    }
+
+    /**
      * Update a customer
      * @param customer  customer to update
      * @param update    update data
