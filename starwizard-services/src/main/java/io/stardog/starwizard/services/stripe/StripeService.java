@@ -68,6 +68,23 @@ public class StripeService {
     }
 
     /**
+     * Creates a new SetupIntent object.
+     * @params params   Parameters to pass along to Stripe
+     * @return created  Stripe Setup Intent object
+     */
+    public SetupIntent createSetupIntent(@Nullable Map<String, Object> params) {
+
+        try{
+            params = params != null ? params : new HashMap<>();
+            return SetupIntent.create(params);
+        } catch (StripeException e) {
+            throw new UncheckedStripeException(e);
+        }
+
+    }
+
+
+    /**
      * Run a one-off charge, either from a customer or a source token.
      * @param amount    amount of the charge
      * @param currency  currency of the charge
