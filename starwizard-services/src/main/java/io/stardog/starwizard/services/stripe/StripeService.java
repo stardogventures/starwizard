@@ -75,10 +75,8 @@ public class StripeService {
     public SetupIntent createSetupIntent(@Nullable Map<String, Object> params) {
 
         try{
-            if(params != null){
-                return SetupIntent.create(params);
-            }
-            return SetupIntent.create(new HashMap<>());
+            params = params != null ? params : new HashMap<>();
+            return SetupIntent.create(params);
         } catch (StripeException e) {
             throw new UncheckedStripeException(e);
         }
