@@ -193,7 +193,7 @@ public class StripeService {
     /**
      * Return a customer
      * @param customerId    customer id
-     * @param customerId    parameters for the retreive operation
+     * @param customerId    parameters for the retrieve operation
      * @return  customer data
      */
     public Customer getCustomer(String customerId, Map<String, Object> params) {
