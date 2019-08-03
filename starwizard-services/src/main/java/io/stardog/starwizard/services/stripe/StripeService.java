@@ -100,7 +100,7 @@ public class StripeService {
     /**
      * Attaches the given payment method to the given customer.
      * @param paymentMethod     Payment method to attach to the customer
-     * @param stripeCustomerId  Stripe ID of the customer to attach the payment method too
+     * @param stripeCustomerId  Stripe ID of the customer to attach the payment method to
      */
     public void attachPaymentMethodToCustomer(PaymentMethod paymentMethod, String stripeCustomerId) {
 
