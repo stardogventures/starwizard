@@ -83,6 +83,41 @@ public class StripeService {
 
     }
 
+    /**
+     * Retrieves a payment method of the given ID. Throws an error if the given ID is not a valid payment method.
+     * @return  Payment method object pulled from Stripe.
+     */
+    public PaymentMethod retrievePaymentMethod(String paymentMethodId) {
+
+        try{
+            return PaymentMethod.retrieve(paymentMethodId);
+        } catch (StripeException e) {
+            throw new UncheckedStripeException(e);
+        }
+
+    }
+
+    /**
+     * Attaches the given payment method to the given customer.
+     * @param paymentMethod     Payment method to attach to the customer
+     * @param stripeCustomerId  Stripe ID of the customer to attach the payment method to
+     */
+    public void attachPaymentMethodToCustomer(PaymentMethod paymentMethod, String stripeCustomerId) {
+
+        Preconditions.checkNotNull(paymentMethod);
+        Preconditions.checkNotNull(stripeCustomerId);
+
+        Map<String,Object> params = new HashMap<>();
+        params.put("customer", stripeCustomerId);
+
+        try{
+            paymentMethod.attach(params);
+        } catch (StripeException e) {
+            throw new UncheckedStripeException(e);
+        }
+
+    }
+
 
     /**
      * Run a one-off charge, either from a customer or a source token.
