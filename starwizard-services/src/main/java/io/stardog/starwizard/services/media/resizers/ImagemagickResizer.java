@@ -42,14 +42,11 @@ public class ImagemagickResizer implements ImageResizer  {
             IMOperation op = new IMOperation();
             op.addImage(ext + ":" + localFile.getAbsolutePath());
             op.autoOrient();
-            op.addRawArgs("-format", "%wx%h");
+            op.addRawArgs("-format", "%w %h ");
             op.addRawArgs("info:");
             convert.run(op);
-            if (output.getOutput().size() != 1) {
-                throw new MediaException("Unexpected response from convert: " + output.getOutput());
-            }
-            String widthXHeight = output.getOutput().get(0); // e.g. 3000x4512
-            String[] parts = widthXHeight.split("x");
+            String widthXHeight = output.getOutput().get(0); // e.g. 3000 4512
+            String[] parts = widthXHeight.split(" ");
             return ImageDimensions.of(Integer.parseInt(parts[0]), Integer.parseInt(parts[1]));
         } catch (Exception e) {
             throw new MediaException(e.getMessage());
