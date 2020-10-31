@@ -405,6 +405,23 @@ public class StripeService {
         }
     }
 
+    public Product getProduct(String productId) {
+        Preconditions.checkNotNull(productId);
+        try {
+            return Product.retrieve(productId);
+        } catch (StripeException e) {
+            throw new UncheckedStripeException(e);
+        }
+    }
+
+    public ProductCollection findAllProducts() {
+        try {
+            return Product.list(ImmutableMap.of());
+        } catch (StripeException e) {
+            throw new UncheckedStripeException(e);
+        }
+    }
+
     /**
      * Record usage for a particular subscription item and a particular timestamp
      * @param subscriptionItemId    subscription item
