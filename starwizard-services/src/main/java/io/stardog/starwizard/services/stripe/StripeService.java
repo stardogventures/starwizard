@@ -430,6 +430,27 @@ public class StripeService {
         }
     }
 
+    public TaxRateCollection findAllTaxRates() {
+        return findAllTaxRates(ImmutableMap.of());
+    }
+
+    public TaxRateCollection findAllTaxRates(Map<String,Object> params) {
+        try {
+            return TaxRate.list(ImmutableMap.of());
+        } catch (StripeException e) {
+            throw new UncheckedStripeException(e);
+        }
+    }
+
+    public TaxRate getTaxRate(String taxRateId) {
+        Preconditions.checkNotNull(taxRateId);
+        try {
+            return TaxRate.retrieve(taxRateId);
+        } catch (StripeException e) {
+            throw new UncheckedStripeException(e);
+        }
+    }
+
     /**
      * Record usage for a particular subscription item and a particular timestamp
      * @param subscriptionItemId    subscription item
