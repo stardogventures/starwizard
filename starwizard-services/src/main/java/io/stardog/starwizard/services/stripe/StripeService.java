@@ -405,6 +405,14 @@ public class StripeService {
         }
     }
 
+    public PlanCollection findAllPlans(Map<String,Object> params) {
+        try {
+            return Plan.list(params);
+        } catch (StripeException e) {
+            throw new UncheckedStripeException(e);
+        }
+    }
+
     public Product getProduct(String productId) {
         Preconditions.checkNotNull(productId);
         try {
