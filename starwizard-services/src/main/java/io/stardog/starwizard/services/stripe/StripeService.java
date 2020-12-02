@@ -388,6 +388,14 @@ public class StripeService {
         }
     }
 
+    public SubscriptionCollection findSubscriptionsByCustomer(String customerId) {
+        try {
+            return Subscription.list(ImmutableMap.of("customer", customerId));
+        } catch (StripeException e) {
+            throw new UncheckedStripeException(e);
+        }
+    }
+
     public Plan getPlan(String planId) {
         Preconditions.checkNotNull(planId);
         try {
