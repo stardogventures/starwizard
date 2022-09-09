@@ -563,4 +563,20 @@ public class StripeService {
             throw new UncheckedStripeException(e);
         }
     }
+
+    /**
+     * Search for customers given the search criteria
+     *
+     * Valid query fields: https://stripe.com/docs/search#query-fields-for-customers
+     *
+     * @param params query map
+     * @return CustomerSearchResult of customers
+     */
+    public CustomerSearchResult searchCustomer(Map<String, Object> params) {
+        try {
+            return Customer.search(params);
+        } catch (StripeException e) {
+            throw new UncheckedStripeException(e);
+        }
+    }
 }
