@@ -35,7 +35,7 @@ public class StripeService {
 
     private StripeService(String apiKey, @Nullable String signingSecret) {
         Stripe.apiKey = apiKey;
-        Stripe.setAppInfo("starwizard-services", "0.2.1", "https://github.com/stardogventures/starwizard");
+        Stripe.setAppInfo("starwizard-services", "0.2.2", "https://github.com/stardogventures/starwizard");
         this.signingSecret = signingSecret;
     }
 
@@ -445,7 +445,7 @@ public class StripeService {
             throw new UncheckedStripeException(e);
         }
     }
-    
+
     public Product getProduct(String productId) {
         Preconditions.checkNotNull(productId);
         try {
