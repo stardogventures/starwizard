@@ -421,6 +421,31 @@ public class StripeService {
         }
     }
 
+    public Price getPrice(String priceId) {
+        Preconditions.checkNotNull(priceId);
+        try {
+            return Price.retrieve(priceId);
+        } catch (StripeException e) {
+            throw new UncheckedStripeException(e);
+        }
+    }
+
+    public PriceCollection findAllPrices() {
+        try {
+            return Price.list(ImmutableMap.of());
+        } catch (StripeException e) {
+            throw new UncheckedStripeException(e);
+        }
+    }
+
+    public PriceCollection findAllPrices(Map<String,Object> params) {
+        try {
+            return Price.list(params);
+        } catch (StripeException e) {
+            throw new UncheckedStripeException(e);
+        }
+    }
+    
     public Product getProduct(String productId) {
         Preconditions.checkNotNull(productId);
         try {
