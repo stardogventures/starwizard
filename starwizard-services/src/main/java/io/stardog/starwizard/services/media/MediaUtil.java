@@ -1,7 +1,6 @@
 package io.stardog.starwizard.services.media;
 
 import io.stardog.starwizard.services.media.data.ImageVersion;
-import org.im4java.core.Info;
 
 import javax.ws.rs.core.MediaType;
 import java.io.File;
@@ -51,14 +50,5 @@ public class MediaUtil {
 
     public static String toVersionPath(String remotePath, String versionName) {
         return remotePath.replace(".", "-" + versionName + ".");
-    }
-
-    public static String getImageFormat(String file) throws InfoException {
-        try {
-            Info imageInfo = new Info(file, true);
-            return imageInfo.getImageFormat();
-        } catch (Exception e) {
-            throw new InfoException("Unable to get file format: " + e.getMessage());
-        }
     }
 }
