@@ -1,13 +1,13 @@
 package io.stardog.starwizard.services.media.info;
 
-import io.stardog.starwizard.services.media.interfaces.ImageInfo;
+import io.stardog.starwizard.services.media.interfaces.ImageInfoInterface;
 import org.im4java.core.Info;
 import org.im4java.core.InfoException;
 
 import javax.inject.Singleton;
 
 @Singleton
-public class ImagemagickInfo implements ImageInfo {
+public class ImagemagickInfoService implements ImageInfoInterface {
     /**
      * Get the format for the file
      *
